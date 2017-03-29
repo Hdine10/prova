@@ -1,0 +1,257 @@
+<html>
+	<head>
+		<title>Starting Code for 1st Project 2017</title>
+		<style>
+		
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+		
+		canvas { 
+			width: 100%; 
+			height: 100%;
+		}
+	
+		</style>
+		<script src="lib/three.min.js"></script>
+		<script src="lib/stats.min.js"></script>
+		<script src="lib/Coordinates.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+	</head>
+	<body>
+		
+		<script>
+		
+		var scene, camera, renderer, controls, stats,  pivot2 = new THREE.Object3D();
+
+		function makeLion(){
+			var pivot = new THREE.Object3D();
+			scene.add(pivot);
+			
+			pivot.add(pivot2);
+			pivot2.matrix.makeTranslation(-2, 1, 0).multiply(new THREE.Matrix4().makeRotationZ(Math.PI/3));
+			pivot2.matrixAutoUpdate = false;
+
+			var geometry = new THREE.BoxGeometry(1,1,1);
+			var orange = new THREE.MeshBasicMaterial( { color : 0xF39C12 } ), 
+				black = new THREE.MeshBasicMaterial( { color : 0x000000 } ),
+				ocra = new THREE.MeshBasicMaterial( { color : 0xFCD96C } ),
+				pink = new THREE.MeshBasicMaterial( { color : 0xf69393 } ),
+				material1 = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/muso.jpg') } );
+			var meshOrecchieMaterial = new THREE.MultiMaterial( [ocra, ocra, black, black, black, black] ),
+				meshBoccaUpMaterial = new THREE.MultiMaterial( [ocra, ocra, ocra, pink, ocra, ocra] ),
+				meshBoccaDownMaterial = new THREE.MultiMaterial( [black, black, pink, ocra, black, black] )
+				meshMusoMaterial = new THREE.MultiMaterial( [material1, ocra, ocra, ocra, ocra, ocra]);
+			var criniera = new THREE.Mesh(geometry, orange),
+				corpo = new THREE.Mesh(geometry, ocra),
+				faccia = new THREE.Mesh(geometry, meshMusoMaterial),
+				orecchie = new THREE.Mesh(geometry, meshOrecchieMaterial),
+				criniera = new THREE.Mesh(geometry, orange),
+				boccaUp = new THREE.Mesh(geometry, meshBoccaUpMaterial),
+				boccaDown = new THREE.Mesh(geometry, meshBoccaDownMaterial),
+				naso = new THREE.Mesh(geometry, black);
+			
+			c = corpo.clone();
+			pivot.add(c);
+			c.matrix.makeScale(4, 2.2, 2.2);
+			c.matrixAutoUpdate = false;
+
+			var collo = criniera.clone()
+			pivot.add(collo);
+			collo.matrix.makeTranslation(3, 0, 0).multiply(new THREE.Matrix4().makeScale(2.5, 3, 3));
+			collo.matrixAutoUpdate = false;
+
+			var zampe = [corpo.clone(),corpo.clone(),corpo.clone(),corpo.clone(),corpo.clone(),criniera.clone()];
+			pivot.add(zampe[0]);
+			zampe[0].matrix.makeTranslation(3, -3, 1).multiply(new THREE.Matrix4().makeScale(0.8, 3, 0.8));
+			zampe[0].matrixAutoUpdate = false;
+			pivot.add(zampe[1]);
+			zampe[1].matrix.makeTranslation(3, -3, -1).multiply(new THREE.Matrix4().makeScale(0.8, 3, 0.8));
+			zampe[1].matrixAutoUpdate = false;
+			pivot.add(zampe[2]);
+			zampe[2].matrix.makeTranslation(-1.6, -2.8, 0.7).multiply(new THREE.Matrix4().makeScale(0.8, 3.4, 0.8));
+			zampe[2].matrixAutoUpdate = false;
+			pivot.add(zampe[3]);
+			zampe[3].matrix.makeTranslation(-1.6, -2.8, -0.7).multiply(new THREE.Matrix4().makeScale(0.8, 3.4, 0.8));
+			zampe[3].matrixAutoUpdate = false;
+			pivot2.add(zampe[4]);
+			zampe[4].matrix.makeTranslation(0, 1, 0).multiply(new THREE.Matrix4().makeScale(0.8, 3, 0.8));
+			zampe[4].matrixAutoUpdate = false;
+			zampe[4].add(zampe[5]);
+			zampe[5].matrix.makeTranslation(0, 0.5, 0).multiply(new THREE.Matrix4().makeScale(1/0.8, 1/3, 1/0.8));
+			zampe[5].matrixAutoUpdate = false;
+			
+			var muso = [faccia.clone(),boccaUp.clone(),boccaDown.clone(),orecchie.clone(),orecchie.clone()];
+			pivot.add(muso[0]);
+			muso[0].matrix.makeTranslation(4.5, 0, 0).multiply(new THREE.Matrix4().makeScale(1, 2.2, 2.2));
+			muso[0].matrixAutoUpdate = false;
+			pivot.add(muso[1]);
+			muso[1].matrix.makeTranslation(5.5, -0.2, 0).multiply(new THREE.Matrix4().makeScale(1, 0.8, 1));
+			muso[1].matrixAutoUpdate = false;
+			pivot.add(muso[2]);
+			muso[2].matrix.makeTranslation(5.5, -0.8, 0).multiply(new THREE.Matrix4().makeScale(1, 0.2, 1));
+			muso[2].matrixAutoUpdate = false;
+			pivot.add(muso[3]);
+			muso[3].matrix.makeTranslation(4.5, 1.4, 0.8).multiply(new THREE.Matrix4().makeScale(0.1, 0.6, 0.6));
+			muso[3].matrixAutoUpdate = false;
+			pivot.add(muso[4]);
+			muso[4].matrix.makeTranslation(4.5, 1.4, -0.8).multiply(new THREE.Matrix4().makeScale(0.1, 0.6, 0.6));
+			muso[4].matrixAutoUpdate = false;
+
+			pivot.add(naso);
+			naso.matrix.makeTranslation(5.9, 0.1, 0).multiply(new THREE.Matrix4().makeScale(0.3, 0.3, 0.3));
+			naso.matrixAutoUpdate = false;
+
+			return pivot;
+		}
+
+		function CreateTerrain(width, height, data){
+			var material1 = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/border.jpg') } );
+			var material2 = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/border.jpg') } );
+			var material3 = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/grass.jpg') } );
+			var material4 = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/dirt.jpg') } );
+			var material5 = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/border.jpg') } );
+			var material6 = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/border.jpg') } );
+  
+			var materials = [material1, material2, material3, material4, material5, material6];
+			var meshGrassMaterial = new THREE.MultiMaterial( materials );
+			var meshDirtMaterial = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load('textures/dirt.jpg') } );
+			
+			var geometry = new THREE.BoxGeometry(1,1,1);
+			var cube = new THREE.Mesh(geometry, meshGrassMaterial);
+			var cube2 = new THREE.Mesh(geometry, meshDirtMaterial);
+
+			for ( var i = 0; i < data.length; i ++ ) {
+		        data[i] = Math.round(data[i]/51);
+		    }
+
+			var k=0,c,c2;
+			for(var i = 0; i < height; i++ ){
+				for(var j = 0; j < width; j++ ){
+					c = cube.clone();
+					scene.add( c );
+					c.matrix.makeTranslation ( i, data[k], j );
+					c.matrixAutoUpdate = false;
+					for ( var h = 1; h <= data[k]; h ++ ) {
+				        c2 = cube2.clone();
+						scene.add( c2 );
+						c2.matrix.makeTranslation ( i, data[k]-h, j );
+						c2.matrixAutoUpdate = false;
+				    }
+					
+					k++;
+				}
+			}
+
+			var pivot = makeLion();
+			var posx = Math.floor(height/2), posz = Math.floor(width/2);
+			pivot.matrix.makeTranslation(posx, data[(posx*width + posz)] + 2.3, posz).multiply(new THREE.Matrix4().makeScale(0.4, 0.4, 0.4));
+			pivot.matrixAutoUpdate = false;
+		}
+		
+		function Start() {
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+			renderer = new THREE.WebGLRenderer( {antialias: true} );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setClearColor( 0xf0f0f0 );
+			document.body.appendChild( renderer.domElement );
+			
+			camera.position.set(40,20,40);
+			camera.lookAt( new THREE.Vector3(0,0,0));			
+
+			// terrain
+			var img = new Image();
+			img.onload = function () {
+				var data = getHeightData(img);
+				//if you want to know hthe number of pixel in the image
+				//alert("Num of elements "+data.length);
+				CreateTerrain(img.width, img.height, data);
+
+			}
+			// load img source
+			img.src = "textures/heightmap.png";
+			
+
+			
+			stats = new Stats();
+			stats.domElement.style.position = 'absolute';
+			stats.domElement.style.top = '0px';
+			document.body.appendChild( stats.domElement );
+
+			// uncomment if you need to draw coordinate axes when building the scene
+			//Coordinates.drawAllAxes();
+			
+			controls = new THREE.OrbitControls( camera );
+			controls.addEventListener( 'change', Render );
+			
+			
+		}
+
+		function getHeightData(img,scale) {
+  
+			if (scale == undefined) scale=1;
+  
+		    var canvas = document.createElement( 'canvas' );
+		    canvas.width = img.width;
+		    canvas.height = img.height;
+		    var context = canvas.getContext( '2d' );
+ 
+		    var size = img.width * img.height;
+			console.log(size);
+		    var data = new Float32Array( size );
+ 
+		    context.drawImage(img,0,0);
+ 
+		    for ( var i = 0; i < size; i ++ ) {
+		        data[i] = 0;
+		    }
+ 
+		    var imgd = context.getImageData(0, 0, img.width, img.height);
+		    var pix = imgd.data;
+ 
+		    var j=0;
+		    for (var i = 0; i < pix.length; i += 4) {
+		        var all = pix[i] + pix[i+1] + pix[i+2];  // all is in range 0 - 255*3
+		        data[j] = scale*all/3;
+		        j++;
+		    }
+     
+		    return data;
+		}
+
+
+		var angle = 0, a=0.01;
+		
+		function Update() {
+			requestAnimationFrame( Update );
+			controls.update();  
+			stats.update();
+
+			if(angle > Math.PI/9){
+				a=-a;
+			}else if (angle < -Math.PI/9) {
+				a=-a;
+			}
+			angle += a;
+			var additionalRotation = new THREE.Matrix4( ).makeRotationZ ( a );
+			pivot2.matrix.multiply( additionalRotation );
+			pivot2.matrixAutoUpdate = false;
+
+			Render();
+		}
+		
+		function Render() {
+			
+			renderer.render(scene, camera);
+		}
+		
+		Start();
+		Update();
+			
+		</script>
+	</body>
+</html>
